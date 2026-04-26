@@ -53,11 +53,10 @@ get_header();
 				<p class="mws-result-item__meta">
 					<?php
 					printf(
-						/* translators: 1: site name, 2: site URL */
-						esc_html__( 'From %1$s (%2$s)', 'multi-wordpress-search' ),
-						esc_html( $item['site_name'] ),
+						/* translators: %s: site name as a link */
+						__( 'Provenance : %s', 'multi-wordpress-search' ),
 						'<a href="' . esc_url( $item['site_url'] ) . '" rel="noopener noreferrer" target="_blank">'
-							. esc_html( $item['site_url'] )
+							. esc_html( $item['site_name'] )
 						. '</a>'
 					);
 					?>
