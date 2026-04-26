@@ -135,7 +135,6 @@
 	} );
 
 	$results.on( 'keydown', '.mws-result-item a', function ( e ) {
-		var $items = $results.find( '.mws-result-item a' );
 		var $active = $( this );
 
 		if ( e.key === 'ArrowDown' ) {
@@ -153,8 +152,6 @@
 			$results.attr( 'hidden', '' );
 			$input.trigger( 'focus' );
 		}
-
-		void $items; // used implicitly via prev/next traversal.
 	} );
 
 }( jQuery ) );

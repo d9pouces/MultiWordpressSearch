@@ -19,7 +19,10 @@ get_header();
 
 <div class="mws-results-page">
 
-	<?php echo MWS_Search_Form::render_search_form( '', array() ); // phpcs:ignore WordPress.Security.EscapeOutput -- method returns safe HTML. ?>
+	<?php
+	// phpcs:ignore WordPress.Security.EscapeOutput -- render_search_form returns escaped HTML.
+	echo MWS_Search_Form::render_search_form( '', array() );
+	?>
 
 	<h2>
 		<?php
