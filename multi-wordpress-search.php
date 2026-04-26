@@ -6,8 +6,8 @@
  * Version:     1.0.0
  * Author:      d9pouces
  * Author URI:  https://github.com/d9pouces
- * License:     GPL-2.0-or-later
- * License URI: https://www.gnu.org/licenses/gpl-2.0.html
+ * License:     CeCILL-B
+ * License URI: https://cecill.info/licences/Licence_CeCILL-B_V1-en.html
  * Text Domain: multi-wordpress-search
  * Domain Path: /languages
  *

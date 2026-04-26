@@ -81,4 +81,4 @@ languages/                   ← POT / translation files (empty by default)
 
 ## License
 
-GPL-2.0-or-later — see <https://www.gnu.org/licenses/gpl-2.0.html>.
+CeCILL-B — see <https://cecill.info/licences/Licence_CeCILL-B_V1-en.html>.
