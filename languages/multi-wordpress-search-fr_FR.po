@@ -1,0 +1,92 @@
+# French translation for Multi WordPress Search
+# Copyright (C) 2024 d9pouces
+# This file is distributed under the same license as the Multi WordPress Search plugin.
+msgid ""
+msgstr ""
+"Project-Id-Version: Multi WordPress Search 1.0.0\n"
+"Report-Msgid-Bugs-To: https://github.com/d9pouces/MultiWordpressSearch\n"
+"POT-Creation-Date: 2024-01-01 00:00+0000\n"
+"PO-Revision-Date: 2024-01-01 00:00+0000\n"
+"Language: fr_FR\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n > 1);\n"
+
+#. translators: %s: search query
+#: templates/search-results.php:31
+msgid "Search results for: %s"
+msgstr "Résultats de recherche pour : %s"
+
+#: templates/search-results.php:38
+msgid "No results found. Please try a different search term."
+msgstr "Aucun résultat trouvé. Veuillez essayer un autre terme de recherche."
+
+#. translators: %1$s: site name, %2$s: site URL
+#: templates/search-results.php:57
+msgid "From %1$s (%2$s)"
+msgstr "De %1$s (%2$s)"
+
+#: multi-wordpress-search.php:120
+msgid "Searching…"
+msgstr "Recherche en cours…"
+
+#: multi-wordpress-search.php:121
+msgid "No results found."
+msgstr "Aucun résultat trouvé."
+
+#: multi-wordpress-search.php:135
+msgid "Empty search query."
+msgstr "Requête de recherche vide."
+
+#: multi-wordpress-search.php:154 includes/class-mws-search-form.php:34
+msgid "Search across WordPress sites…"
+msgstr "Rechercher sur les sites WordPress…"
+
+#: admin/class-mws-admin.php:54 admin/class-mws-admin.php:147
+msgid "Multi WordPress Search"
+msgstr "Multi WordPress Search"
+
+#: admin/class-mws-admin.php:55
+msgid "Multi WP Search"
+msgstr "Multi WP Search"
+
+#: admin/class-mws-admin.php:78
+msgid "WordPress Sites to Search"
+msgstr "Sites WordPress à rechercher"
+
+#: admin/class-mws-admin.php:85
+msgid "Sites"
+msgstr "Sites"
+
+#: admin/class-mws-admin.php:127
+msgid "Add the base URLs of the WordPress sites you want to include in the search results. The plugin will query each site's REST API (/wp-json/wp/v2/search)."
+msgstr "Ajoutez les URL de base des sites WordPress à inclure dans les résultats de recherche. Le plugin interrogera l'API REST de chaque site (/wp-json/wp/v2/search)."
+
+#: admin/class-mws-admin.php:152
+msgid "Save Sites"
+msgstr "Enregistrer les sites"
+
+#: admin/class-mws-admin.php:181
+msgid "Add another site"
+msgstr "Ajouter un autre site"
+
+#: admin/class-mws-admin.php:182 admin/admin-page.php:35
+msgid "Remove"
+msgstr "Supprimer"
+
+#: admin/class-mws-admin.php:184 admin/admin-page.php:31
+msgid "Site label (optional)"
+msgstr "Étiquette du site (optionnel)"
+
+#: admin/admin-page.php:43
+msgid "Add site"
+msgstr "Ajouter un site"
+
+#: admin/admin-page.php:47
+msgid "Enter the base URL of each WordPress site (e.g. https://example.com). The plugin appends /wp-json/wp/v2/search to build the API endpoint."
+msgstr "Saisissez l'URL de base de chaque site WordPress (ex. https://example.com). Le plugin ajoute /wp-json/wp/v2/search pour construire l'endpoint de l'API."
+
+#: includes/class-mws-search-form.php:44 includes/class-mws-search-form.php:62
+msgid "Search"
+msgstr "Rechercher"
