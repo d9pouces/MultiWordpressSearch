@@ -30,6 +30,14 @@
 	min-width: 0;
 }
 
+/* Submit icon (inline SVG) */
+.mws-search-form__submit-icon {
+	display: inline-block;
+	vertical-align: middle;
+	width: 1.1em;
+	height: 1.1em;
+}
+
 /* Submit button */
 .mws-search-form__submit {
 	flex: 0 0 auto;
