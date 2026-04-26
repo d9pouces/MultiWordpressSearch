@@ -86,7 +86,7 @@
 }
 
 .mws-result-item a {
-	display: block;
+	display: inline;
 	text-decoration: none;
 	color: #0073aa;
 	font-weight: 600;
