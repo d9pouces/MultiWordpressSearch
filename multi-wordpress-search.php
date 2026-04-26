@@ -22,6 +22,7 @@ define( 'MWS_VERSION', '1.0.0' );
 define( 'MWS_PLUGIN_DIR', plugin_dir_path( __FILE__ ) );
 define( 'MWS_PLUGIN_URL', plugin_dir_url( __FILE__ ) );
 define( 'MWS_OPTION_SITES', 'mws_sites' );
+define( 'MWS_OPTION_PLACEHOLDER', 'mws_placeholder' );
 
 require_once MWS_PLUGIN_DIR . 'includes/class-mws-api-client.php';
 require_once MWS_PLUGIN_DIR . 'includes/class-mws-search-form.php';
@@ -151,7 +152,7 @@ class Multi_Wordpress_Search {
 	public function render_shortcode( $atts ) {
 		$atts = shortcode_atts(
 			array(
-				'placeholder' => __( 'Search across WordPress sites…', 'multi-wordpress-search' ),
+				'placeholder' => get_option( MWS_OPTION_PLACEHOLDER, __( 'Search across WordPress sites…', 'multi-wordpress-search' ) ),
 			),
 			$atts,
 			'multi_wordpress_search'
@@ -167,6 +168,9 @@ class Multi_Wordpress_Search {
 function mws_activate() {
 	if ( false === get_option( MWS_OPTION_SITES ) ) {
 		add_option( MWS_OPTION_SITES, array() );
+	}
+	if ( false === get_option( MWS_OPTION_PLACEHOLDER ) ) {
+		add_option( MWS_OPTION_PLACEHOLDER, '' );
 	}
 }
 register_activation_hook( __FILE__, 'mws_activate' );

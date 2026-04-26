@@ -31,7 +31,7 @@ class MWS_Search_Form {
 	public static function render_search_form( $form, $args = array() ) {
 		$placeholder = isset( $args['placeholder'] )
 			? esc_attr( $args['placeholder'] )
-			: esc_attr__( 'Search across WordPress sites…', 'multi-wordpress-search' );
+			: esc_attr( get_option( MWS_OPTION_PLACEHOLDER ) ?: __( 'Search across WordPress sites…', 'multi-wordpress-search' ) );
 
 		$search_value = isset( $_GET['mws_query'] )
 			? esc_attr( sanitize_text_field( wp_unslash( $_GET['mws_query'] ) ) )

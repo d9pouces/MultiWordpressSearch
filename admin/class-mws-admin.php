@@ -73,6 +73,31 @@ class MWS_Admin {
 			)
 		);
 
+		register_setting(
+			'mws_settings_group',
+			MWS_OPTION_PLACEHOLDER,
+			array(
+				'type'              => 'string',
+				'sanitize_callback' => 'sanitize_text_field',
+				'default'           => '',
+			)
+		);
+
+		add_settings_section(
+			'mws_general_section',
+			__( 'General Settings', 'multi-wordpress-search' ),
+			'__return_false',
+			'multi-wordpress-search'
+		);
+
+		add_settings_field(
+			'mws_placeholder_field',
+			__( 'Search form placeholder', 'multi-wordpress-search' ),
+			array( $this, 'render_placeholder_field' ),
+			'multi-wordpress-search',
+			'mws_general_section'
+		);
+
 		add_settings_section(
 			'mws_sites_section',
 			__( 'WordPress Sites to Search', 'multi-wordpress-search' ),
@@ -121,6 +146,20 @@ class MWS_Admin {
 	}
 
 	/**
+	 * Renders the placeholder text input field.
+	 */
+	public function render_placeholder_field() {
+		$value = get_option( MWS_OPTION_PLACEHOLDER, '' );
+		printf(
+			'<input type="text" id="mws_placeholder" name="%s" value="%s" class="regular-text" placeholder="%s" />',
+			esc_attr( MWS_OPTION_PLACEHOLDER ),
+			esc_attr( $value ),
+			esc_attr__( 'Search across WordPress sites…', 'multi-wordpress-search' )
+		);
+		echo '<p class="description">' . esc_html__( 'Customize the placeholder text displayed in the search form input. Leave empty to use the default.', 'multi-wordpress-search' ) . '</p>';
+	}
+
+	/**
 	 * Renders the section description.
 	 */
 	public function render_section_description() {
@@ -149,7 +188,7 @@ class MWS_Admin {
 				<?php
 				settings_fields( 'mws_settings_group' );
 				do_settings_sections( 'multi-wordpress-search' );
-				submit_button( __( 'Save Sites', 'multi-wordpress-search' ) );
+				submit_button( __( 'Save Settings', 'multi-wordpress-search' ) );
 				?>
 			</form>
 		</div>

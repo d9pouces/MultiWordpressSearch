@@ -63,6 +63,22 @@ msgstr "Sites"
 msgid "Add the base URLs of the WordPress sites you want to include in the search results. The plugin will query each site's REST API (/wp-json/wp/v2/search)."
 msgstr "Ajoutez les URL de base des sites WordPress à inclure dans les résultats de recherche. Le plugin interrogera l'API REST de chaque site (/wp-json/wp/v2/search)."
 
+#: admin/class-mws-admin.php:191
+msgid "Save Settings"
+msgstr "Enregistrer les paramètres"
+
+#: admin/class-mws-admin.php:88
+msgid "General Settings"
+msgstr "Paramètres généraux"
+
+#: admin/class-mws-admin.php:95
+msgid "Search form placeholder"
+msgstr "Texte indicatif du formulaire de recherche"
+
+#: admin/class-mws-admin.php:159
+msgid "Customize the placeholder text displayed in the search form input. Leave empty to use the default."
+msgstr "Personnalisez le texte indicatif affiché dans le champ de recherche. Laissez vide pour utiliser la valeur par défaut."
+
 #: admin/class-mws-admin.php:152
 msgid "Save Sites"
 msgstr "Enregistrer les sites"
