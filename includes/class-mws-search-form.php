@@ -98,7 +98,32 @@ add_action(
 		$client  = new MWS_API_Client();
 		$results = $client->search_all( $query, $sites );
 
+		// Capture full page output so we can strip "site-content" from the theme's #content element.
+		ob_start();
 		MWS_Search_Form::render_results( $results, $query );
+		$html = ob_get_clean();
+
+		// Remove the "site-content" class from the tag that carries id="content", keeping "container".
+		echo preg_replace_callback(
+			'/<[^>]+\bid=["\']content["\'][^>]*>/',
+			function ( $tag_match ) {
+				return preg_replace_callback(
+					'/\bclass=(["\'])([^"\']*)\1/',
+					function ( $class_match ) {
+						$quote   = $class_match[1];
+						$classes = preg_split( '/\s+/', trim( $class_match[2] ) );
+						$classes = array_values( array_filter( $classes, function ( $c ) { return 'site-content' !== $c; } ) );
+						if ( empty( $classes ) ) {
+							// Drop the class attribute entirely if no classes remain.
+							return '';
+						}
+						return 'class=' . $quote . implode( ' ', $classes ) . $quote;
+					},
+					$tag_match[0]
+				);
+			},
+			$html
+		);
 		exit;
 	}
 );
