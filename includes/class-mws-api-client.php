@@ -132,11 +132,19 @@ class MWS_API_Client {
 
 			$excerpt = '';
 			if ( ! empty( $item['_embedded']['self'][0]['excerpt']['rendered'] ) ) {
-				$excerpt = wp_strip_all_tags( $item['_embedded']['self'][0]['excerpt']['rendered'] );
+				$excerpt = html_entity_decode(
+					wp_strip_all_tags( $item['_embedded']['self'][0]['excerpt']['rendered'] ),
+					ENT_QUOTES | ENT_HTML5,
+					'UTF-8'
+				);
 			} elseif ( ! empty( $item['_embedded']['self'][0]['content']['rendered'] ) ) {
-				$excerpt = wp_trim_words(
-					wp_strip_all_tags( $item['_embedded']['self'][0]['content']['rendered'] ),
-					30
+				$excerpt = html_entity_decode(
+					wp_trim_words(
+						wp_strip_all_tags( $item['_embedded']['self'][0]['content']['rendered'] ),
+						30
+					),
+					ENT_QUOTES | ENT_HTML5,
+					'UTF-8'
 				);
 			}
 
