@@ -78,7 +78,7 @@ class MWS_API_Client {
 		$base_url = trailingslashit( esc_url_raw( $site['url'] ) );
 		$site_name = isset( $site['name'] ) ? sanitize_text_field( $site['name'] ) : wp_parse_url( $base_url, PHP_URL_HOST );
 
-		$api_url = add_query_arg(
+		$search_api_url = add_query_arg(
 			array(
 				'search'   => rawurlencode( $query ),
 				'per_page' => $this->per_page,
@@ -87,6 +87,20 @@ class MWS_API_Client {
 			$base_url . 'wp-json/wp/v2/search'
 		);
 
+		$search_data      = $this->request_json( $search_api_url );
+		$search_results   = $this->normalise_results( $search_data, $site_name, $base_url );
+		$keyword_results  = $this->search_site_by_keywords( $query, $site_name, $base_url );
+
+		return $this->merge_unique_results( $search_results, $keyword_results );
+	}
+
+	/**
+	 * Performs a GET request and returns a decoded JSON array.
+	 *
+	 * @param string $api_url REST endpoint URL.
+	 * @return array JSON response as associative array.
+	 */
+	private function request_json( $api_url ) {
 		$response = wp_remote_get(
 			$api_url,
 			array(
@@ -107,11 +121,112 @@ class MWS_API_Client {
 		$body = wp_remote_retrieve_body( $response );
 		$data = json_decode( $body, true );
 
-		if ( ! is_array( $data ) ) {
+		return is_array( $data ) ? $data : array();
+	}
+
+	/**
+	 * Searches content by matching keyword terms, then loading related posts.
+	 *
+	 * @param string $query     Search query string.
+	 * @param string $site_name Human-readable site label.
+	 * @param string $base_url  Base URL of the remote site.
+	 * @return array[] Normalised result items.
+	 */
+	private function search_site_by_keywords( $query, $site_name, $base_url ) {
+		$tag_ids = $this->get_matching_tag_ids( $query, $base_url );
+		if ( empty( $tag_ids ) ) {
 			return array();
 		}
 
-		return $this->normalise_results( $data, $site_name, $base_url );
+		$results    = array();
+		$rest_bases = $this->get_tag_searchable_rest_bases( $base_url );
+
+		foreach ( $rest_bases as $rest_base ) {
+			$posts_api_url = add_query_arg(
+				array(
+					'tags'     => implode( ',', $tag_ids ),
+					'per_page' => $this->per_page,
+					'_embed'   => 1,
+				),
+				$base_url . 'wp-json/wp/v2/' . $rest_base
+			);
+
+			$posts_data = $this->request_json( $posts_api_url );
+			if ( empty( $posts_data ) ) {
+				continue;
+			}
+
+			$results = array_merge( $results, $this->normalise_content_results( $posts_data, $site_name, $base_url ) );
+		}
+
+		return $results;
+	}
+
+	/**
+	 * Returns tag IDs matching the given query.
+	 *
+	 * @param string $query    Search query string.
+	 * @param string $base_url Base URL of the remote site.
+	 * @return int[] Matching tag IDs.
+	 */
+	private function get_matching_tag_ids( $query, $base_url ) {
+		$tags_api_url = add_query_arg(
+			array(
+				'search'   => rawurlencode( $query ),
+				'per_page' => 20,
+			),
+			$base_url . 'wp-json/wp/v2/tags'
+		);
+
+		$tags_data = $this->request_json( $tags_api_url );
+		if ( empty( $tags_data ) ) {
+			return array();
+		}
+
+		$tag_ids = array();
+		foreach ( $tags_data as $tag_item ) {
+			if ( ! empty( $tag_item['id'] ) ) {
+				$tag_ids[] = absint( $tag_item['id'] );
+			}
+		}
+
+		return array_values( array_unique( array_filter( $tag_ids ) ) );
+	}
+
+	/**
+	 * Finds all post-type REST bases that support WordPress tags.
+	 *
+	 * @param string $base_url Base URL of the remote site.
+	 * @return string[] REST bases to query.
+	 */
+	private function get_tag_searchable_rest_bases( $base_url ) {
+		$types_data = $this->request_json( $base_url . 'wp-json/wp/v2/types' );
+		if ( empty( $types_data ) ) {
+			return array( 'posts' );
+		}
+
+		$rest_bases = array();
+
+		foreach ( $types_data as $type_item ) {
+			if ( empty( $type_item['rest_base'] ) || empty( $type_item['taxonomies'] ) || ! is_array( $type_item['taxonomies'] ) ) {
+				continue;
+			}
+
+			if ( ! in_array( 'post_tag', $type_item['taxonomies'], true ) ) {
+				continue;
+			}
+
+			$rest_base = sanitize_key( $type_item['rest_base'] );
+			if ( '' !== $rest_base ) {
+				$rest_bases[] = $rest_base;
+			}
+		}
+
+		if ( empty( $rest_bases ) ) {
+			$rest_bases[] = 'posts';
+		}
+
+		return array_values( array_unique( $rest_bases ) );
 	}
 
 	/**
@@ -159,5 +274,92 @@ class MWS_API_Client {
 		}
 
 		return $results;
+	}
+
+	/**
+	 * Normalises content endpoint items (e.g. /posts, /recipe) into result format.
+	 *
+	 * @param array  $items     Raw items from a post-type endpoint.
+	 * @param string $site_name Human-readable site label.
+	 * @param string $site_url  Base URL of the remote site.
+	 * @return array[] Normalised result items.
+	 */
+	private function normalise_content_results( array $items, $site_name, $site_url ) {
+		$results = array();
+
+		foreach ( $items as $item ) {
+			if ( empty( $item['link'] ) || empty( $item['title']['rendered'] ) ) {
+				continue;
+			}
+
+			$title = sanitize_text_field(
+				html_entity_decode(
+					wp_strip_all_tags( $item['title']['rendered'] ),
+					ENT_QUOTES | ENT_HTML5,
+					'UTF-8'
+				)
+			);
+
+			if ( '' === $title ) {
+				continue;
+			}
+
+			$excerpt = '';
+			if ( ! empty( $item['excerpt']['rendered'] ) ) {
+				$excerpt = html_entity_decode(
+					wp_strip_all_tags( $item['excerpt']['rendered'] ),
+					ENT_QUOTES | ENT_HTML5,
+					'UTF-8'
+				);
+			} elseif ( ! empty( $item['content']['rendered'] ) ) {
+				$excerpt = wp_trim_words(
+					html_entity_decode(
+						wp_strip_all_tags( $item['content']['rendered'] ),
+						ENT_QUOTES | ENT_HTML5,
+						'UTF-8'
+					),
+					30
+				);
+			}
+
+			$results[] = array(
+				'title'     => $title,
+				'url'       => esc_url_raw( $item['link'] ),
+				'excerpt'   => $excerpt,
+				'type'      => isset( $item['type'] ) ? sanitize_key( $item['type'] ) : 'post',
+				'site_name' => $site_name,
+				'site_url'  => $site_url,
+			);
+		}
+
+		return $results;
+	}
+
+	/**
+	 * Merges result arrays while removing duplicates by URL.
+	 *
+	 * @param array[] $primary   Base result list.
+	 * @param array[] $secondary Additional result list.
+	 * @return array[] Deduplicated merged results.
+	 */
+	private function merge_unique_results( array $primary, array $secondary ) {
+		$seen_urls = array();
+		$merged    = array();
+
+		foreach ( array_merge( $primary, $secondary ) as $item ) {
+			if ( empty( $item['url'] ) ) {
+				continue;
+			}
+
+			$url = esc_url_raw( $item['url'] );
+			if ( isset( $seen_urls[ $url ] ) ) {
+				continue;
+			}
+
+			$seen_urls[ $url ] = true;
+			$merged[]          = $item;
+		}
+
+		return $merged;
 	}
 }
