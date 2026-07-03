@@ -17,6 +17,34 @@ if ( ! defined( 'ABSPATH' ) ) {
  * then by site order as configured by the administrator).
  */
 class MWS_API_Client {
+	/**
+	 * Number of tag terms to request when matching keywords.
+	 *
+	 * @var int
+	 */
+	private const TAGS_PER_PAGE = 20;
+
+	/**
+	 * Fallback REST base to query when no tagged post type is detected.
+	 *
+	 * @var string
+	 */
+	private const FALLBACK_TAG_REST_BASE = 'posts';
+
+	/**
+	 * WordPress taxonomy identifier used for post keywords.
+	 *
+	 * @var string
+	 */
+	private const TAG_TAXONOMY_NAME = 'post_tag';
+
+	/**
+	 * Number of words to keep when generating excerpt snippets.
+	 *
+	 * @var int
+	 */
+	private const EXCERPT_WORD_COUNT = 30;
+
 
 	/**
 	 * Number of results to request per site.
@@ -173,7 +201,7 @@ class MWS_API_Client {
 		$tags_api_url = add_query_arg(
 			array(
 				'search'   => rawurlencode( $query ),
-				'per_page' => 20,
+				'per_page' => self::TAGS_PER_PAGE,
 			),
 			$base_url . 'wp-json/wp/v2/tags'
 		);
@@ -202,7 +230,7 @@ class MWS_API_Client {
 	private function get_tag_searchable_rest_bases( $base_url ) {
 		$types_data = $this->request_json( $base_url . 'wp-json/wp/v2/types' );
 		if ( empty( $types_data ) ) {
-			return array( 'posts' );
+			return array( self::FALLBACK_TAG_REST_BASE );
 		}
 
 		$rest_bases = array();
@@ -212,7 +240,7 @@ class MWS_API_Client {
 				continue;
 			}
 
-			if ( ! in_array( 'post_tag', $type_item['taxonomies'], true ) ) {
+			if ( ! in_array( self::TAG_TAXONOMY_NAME, $type_item['taxonomies'], true ) ) {
 				continue;
 			}
 
@@ -223,7 +251,7 @@ class MWS_API_Client {
 		}
 
 		if ( empty( $rest_bases ) ) {
-			$rest_bases[] = 'posts';
+			$rest_bases[] = self::FALLBACK_TAG_REST_BASE;
 		}
 
 		return array_values( array_unique( $rest_bases ) );
@@ -247,19 +275,11 @@ class MWS_API_Client {
 
 			$excerpt = '';
 			if ( ! empty( $item['_embedded']['self'][0]['excerpt']['rendered'] ) ) {
-				$excerpt = html_entity_decode(
-					wp_strip_all_tags( $item['_embedded']['self'][0]['excerpt']['rendered'] ),
-					ENT_QUOTES | ENT_HTML5,
-					'UTF-8'
-				);
+				$excerpt = $this->clean_rendered_text( $item['_embedded']['self'][0]['excerpt']['rendered'] );
 			} elseif ( ! empty( $item['_embedded']['self'][0]['content']['rendered'] ) ) {
 				$excerpt = wp_trim_words(
-					html_entity_decode(
-						wp_strip_all_tags( $item['_embedded']['self'][0]['content']['rendered'] ),
-						ENT_QUOTES | ENT_HTML5,
-						'UTF-8'
-					),
-					30
+					$this->clean_rendered_text( $item['_embedded']['self'][0]['content']['rendered'] ),
+					self::EXCERPT_WORD_COUNT
 				);
 			}
 
@@ -293,11 +313,7 @@ class MWS_API_Client {
 			}
 
 			$title = sanitize_text_field(
-				html_entity_decode(
-					wp_strip_all_tags( $item['title']['rendered'] ),
-					ENT_QUOTES | ENT_HTML5,
-					'UTF-8'
-				)
+				$this->clean_rendered_text( $item['title']['rendered'] )
 			);
 
 			if ( '' === $title ) {
@@ -306,19 +322,11 @@ class MWS_API_Client {
 
 			$excerpt = '';
 			if ( ! empty( $item['excerpt']['rendered'] ) ) {
-				$excerpt = html_entity_decode(
-					wp_strip_all_tags( $item['excerpt']['rendered'] ),
-					ENT_QUOTES | ENT_HTML5,
-					'UTF-8'
-				);
+				$excerpt = $this->clean_rendered_text( $item['excerpt']['rendered'] );
 			} elseif ( ! empty( $item['content']['rendered'] ) ) {
 				$excerpt = wp_trim_words(
-					html_entity_decode(
-						wp_strip_all_tags( $item['content']['rendered'] ),
-						ENT_QUOTES | ENT_HTML5,
-						'UTF-8'
-					),
-					30
+					$this->clean_rendered_text( $item['content']['rendered'] ),
+					self::EXCERPT_WORD_COUNT
 				);
 			}
 
@@ -333,6 +341,20 @@ class MWS_API_Client {
 		}
 
 		return $results;
+	}
+
+	/**
+	 * Sanitizes rendered HTML from REST responses into plain text.
+	 *
+	 * @param string $value Rendered field value.
+	 * @return string Decoded plain text.
+	 */
+	private function clean_rendered_text( $value ) {
+		return html_entity_decode(
+			wp_strip_all_tags( (string) $value ),
+			ENT_QUOTES | ENT_HTML5,
+			'UTF-8'
+		);
 	}
 
 	/**
@@ -351,7 +373,7 @@ class MWS_API_Client {
 				continue;
 			}
 
-			$url = esc_url_raw( $item['url'] );
+			$url = (string) $item['url'];
 			if ( isset( $seen_urls[ $url ] ) ) {
 				continue;
 			}
